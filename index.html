@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script>
+<meta name="description" content="CS4406 Computer Graphics - Exercise #1" />
+  	<meta charset="utf-8" />
+	<title>Sample Three.js</title>
+	<style>
+		#container {
+			background: #000000;
+			width: 100%;
+			height: 100%;
+		}
+  </style>
+<meta charset=utf-8 />
+<title>CS4406 Computer Graphics - Exercise #1</title>
+  
+<style id="jsbin-css">
+
+</style>
+</head>
+<body>
+<div id="container">
+</div>
+</body>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script> 
+	<script src="http://uopeopleweb.com/js/dat.gui.min.js">
+  </script>
+	<script src="https://threejs.org/build/three.js"></script>
+        <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+	<script src="http://uopeopleweb.com/js/math.js"></script>
+	<script src="http://uopeopleweb.com/js/Detector.js"></script>
+	<script type="text/javascript">
+
+    
+    
+	// set the scene size
+	var WIDTH = 500, HEIGHT = 500;
+
+	// set some camera attributes
+	var VIEW_ANGLE = 45, ASPECT = WIDTH / HEIGHT, NEAR = 1, FAR = 1000000000;
+
+	// get the DOM element to attach to
+	var $container = $('#container');
+
+	// create a WebGL renderer, camera, and a scene
+      
+    var renderer = new THREE.WebGLRenderer(
+      { antialias: true
+      });
+	var scene = new THREE.Scene();
+	var clock = new THREE.Clock();
+	var camera = new THREE.PerspectiveCamera(VIEW_ANGLE,ASPECT,NEAR,FAR);
+	 // the camera starts at 0,0,0 so pull it back
+	camera.position.z = 200;    	
+	// add the camera to the scene
+	scene.add(camera)
+    renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+//var R = window.prompt("Enter the radios of the earth ");  
+  //  var Rs = window.prompt("Enter the distance between the center of the earth and the satellite ");    
+
+ // var M = window.prompt("Enter the Mass ");
+    //  var Ms = window.prompt("Enter the Mass of the satellite");
+
+   //var G = window.prompt("Enter the constant ");    
+  // var Xmoon = window.prompt("Enter X coordinates of the moon ");    
+ //  var Ymoon = window.prompt("Enter Y coordinates of the moon ");    
+      // var Zmoon = window.prompt("Enter Z coordinates of the moon ");  
+ //  var the_speed_of_oil= window.prompt("Enter the speed of oil the  moon ");    
+   //var mass_of_rocket = window.prompt("Enter mass of the rocket ");    
+  // var last_mass_rocket = window.prompt("Enter mass  of the rocket without oil ");
+// var th = window.prompt("Enter the angil theta between satellite and Z-axis ");
+     //var phi = window.prompt("Enter the angil phi between satellite and X-axis ");
+     //let f = window.prompt("Enter the  force applied on the satellite");
+   // var Xmoon = 4;
+    //
+    //var Ymoon =4;
+    //var Zmoon =4;
+   // let f = 90;
+    let C = 0.00000000005;
+    let D = 0.1;
+    let A = 200;
+    let f = 1500;
+    let fr=4;
+    var G = 6.67430*Math.pow(10,-11);
+    var th = 0;
+    var R = 637.1;
+    var M=5.9742*Math.pow(10,19);
+    var Ms=0.2415;
+    var Rs=2007.1; 
+    //var intialspeed =1400;
+var intialspeed =650;
+  /*  var intialspeed = the_speed_of_oil*Math.log( mass_of_rocket/last_mass_rocket); 
+*/
+    
+
+ /*const intialvelocity = new THREE.vector3d(Xmoon,Ymoon,Zmoon);
+    
+     const intialvelocity = new THREE.vector3d(Xmoon,Ymoon,Zmoon);
+	// set up the camera controls.  Please keep in mind that what this does is move the entire scene around.
+	// because the entire scene is moving the position of the camera and lights in relation to objects within 
+	// the scene doesn't change so the lighting on the surface of the object(s) will not change either
+	/*var cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+	cameraControls.addEventListener( 'mousemove', renderer );
+    cameraControls.autoRotate = false;
+      */
+	// start the renderer
+	renderer.setSize(WIDTH, HEIGHT);
+
+	// attach the render-supplied DOM element
+	$container.append(renderer.domElement);
+
+	// ----------------------------------------------------------------------------------------
+	//  END OF THE STANDARD CODE FOR THE ASSIGNMENT
+	//  Following this is where you must place your own custom code to complete the assignment
+	// ----------------------------------------------------------------------------------------
+    //adding a slight and soft ambient light
+   var cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+	cameraControls.addEventListener( 'mousemove', renderer );
+    cameraControls.autoRotate = false;
+   const ambientlight = new THREE.AmbientLight( 0x101010 ); // soft white light
+scene.add( ambientlight );
+    
+// adding the white light from the right (directional light)
+    const Directionallight = new THREE.DirectionalLight( 0xffffff, 1, 100 );
+Directionallight.position.set( 1, 0, 0 ); //default; light shining from right
+Directionallight.castShadow = true; // default false
+scene.add( Directionallight );
+
+
+class vector{
+
+
+  constructor (x,y,z)
+  {
+this.x=x;
+ this.y=y;
+this.z=z;
+}
+add (other){
+
+  return new vector(this.x+other.x,this.y+other.y,this.z+other.z);
+}
+scalar (si){
+  return new vector(this.x*si,this.y*si,this.z*si);
+}
+
+normal (){
+
+  return Math.sqrt(this.x*this.x+this.y*this.y+this.z*this.z)
+}
+  
+}    
+    // drawing the earht 
+const geometry2 = new THREE.SphereGeometry(R , 50, 50 );
+    // making the material phong to interact with the light
+const material2 = new THREE.MeshPhongMaterial( { 
+map: new THREE.TextureLoader().load('https://upload.wikimedia.org/wikipedia/commons/c/cf/WorldMap-A_non-Frame.png')  
+} ); // loading the earth texture 
+const earth= new THREE.Mesh( geometry2, material2 );
+     /// earth.castShadow = true; //default is false
+  ///   earth.receiveShadow = true; //default
+scene.add( earth );
+
+
+// drawing the moon with radius of 2
+    const geometry = new THREE.SphereGeometry( 200, 64, 64 );    // making the material phong to interact with the light
+const material = new THREE.MeshPhongMaterial( { 
+map: new THREE.TextureLoader().load(' https://upload.wikimedia.org/wikipedia/commons/d/db/Moonmap_from_clementine_data.png')  
+} ); // loading the moon texture 
+const moon = new THREE.Mesh( geometry, material );
+    ///moon.castShadow = true; //default is false
+///moon.receiveShadow = true; //default
+scene.add( moon );
+// Having the pivot for the moon in order to rotate the moon around the earth
+/*var moonpivot = new THREE.Object3D();
+earth.add(moonpivot);
+moonpivot.add(moon)*/
+    
+
+
+       // ----------------------------------------------------------------------------------------
+       // END OF YOUR CUSTOM CODE FOR THE ASSIGNMENT
+       // The rendering functions that follow are standard and can be used for this assignment.
+       // You are welcome to customize them or create your own if you desire, however, you can
+       // simply use the code provided.
+  
+    
+	// Standard functions for rendering the scene.  Notice how we have the animate function 
+	// which submits a call to requestAnimationFrame to call animate.   This creates a loop
+	// that will render the scene again whenever something within the scene changes.
+    camera.position.z=26000;
+     //moon.position.x= Xmoon;
+      // moon.position.y= Ymoon;
+var dt = 0.05;
+    var initialForceDuration = 0.2;
+    var time = 0;
+///moon.position.x=-( Rs +2500) ;
+
+    
+   moon.position.x= 2000;
+        moon.position.y= 2000;
+
+     ///moon.position.y= -( Rs +2500);
+     //Vector Location {Xmoon,Ymoon,Zmoon};
+ 
+    let Location = new vector( 2000, 2000,0);
+    
+    let velocity = new vector(-intialspeed* Math.sin(th),intialspeed*Math.cos(th),0);
+        let acc = new vector(0,0,0);
+
+
+
+    
+const points = [];
+const materialLine = new THREE.LineBasicMaterial({color: 0Xffffff})
+
+    
+   function animate() {
+		requestAnimationFrame(animate);
+		render();
+     points.push( new THREE.Vector3( moon.position.x, moon.position.y, 0 ) );
+    const geometry = new THREE.BufferGeometry().setFromPoints( points );
+    const line = new THREE.Line( geometry, materialLine );
+    scene.add(line)
+    //moonpivot.rotation.y+=0.005;// rotating the moon around the earth
+   earth.rotation.y+=0.006; // rotating the eath on its axis
+   // moon.rotation.y+=0.004; // rotatxing the moon on its axis
+time += dt;
+    //pulse
+      Rs = Math.sqrt(( moon.position.x* moon.position.x)+( moon.position.y* moon.position.y)); 
+
+
+if (moon.position.x == 0  ){
+        if (moon.position.y > 0 )
+        th = Math.PI / 2
+        if (moon.position.y < 0 )
+        th = - Math.PI / 2
+        
+    }else if ( moon.position.y == 0) {
+        if(moon.position.x > 0 )
+        th = 0 
+        if ( moon.position.x < 0)
+        th = Math.PI 
+    }else
+    {
+    if (moon.position.x >  0 && moon .position.y > 0){
+        th = Math.atan((moon.position.y )/(moon.position.x  )) 
+    }
+    if (moon.position.x <  0 && moon .position.y > 0){
+        th = Math.atan((moon.position.y )/(-moon.position.x  ))
+        th = Math.PI - th 
+    }
+    if (moon.position.x <  0 && moon .position.y < 0 ){
+        th = Math.atan((-moon.position.y )/(-moon.position.x  ))
+        th = Math.PI + th 
+    }
+    if (moon.position.x >  0 && moon .position.y < 0){
+        th = Math.atan((-moon.position.y )/(moon.position.x  ))
+        th =2 * Math.PI - th 
+    }
+    }
+     
+  let total_force= new vector(0,0,0);
+           if (time < initialForceDuration){
+total_force = total_force.add(new vector( -f*(moon.position.y / Rs),f*(moon.position.x / Rs),0));
+          }
+           
+   //if(moon.position.y>=0){
+              var fg = -(G*M*Ms)/(Rs*Rs);//}
+     
+    // else{var fg = (G*M*Ms)/(Rs*Rs);}
+    
+total_force = total_force.add(new vector( fg*(moon.position.x / Rs),fg*(moon.position.y / Rs),0));
+                var factor = -C * A * Math.PI * D * velocity.normal();
+
+            total_force = total_force.add(velocity.scalar(factor));
+
+     
+     acc = total_force.scalar(1 / Ms);
+   
+     velocity = velocity.add(acc.scalar(dt)); 
+      Location = Location.add(velocity.scalar(dt));
+      console.log('force',total_force,'Location',Location,'velocity',velocity);
+
+      //  console.log('Location',Location);
+
+    moon.position.x=Location.x;
+     moon.position.y=Location.y;
+    
+    
+    
+//document.writeln(moon.position.x+ "\n") ;  
+  //  document.writeln(moon.position.y+ "\n");
+    
+  //   document.writeln(moon.position.x+ "\n");
+   //  document.write(moon.position.y+ "\n");
+  /*  if(time>5){
+  
+    moon.position.x=Location.x;
+     moon.position.y=Location.y;
+
+      //document.write(Location.x+ "\n");
+
+       // document.write(Location.y);
+
+    }*/
+
+
+function moveCamera(event) {
+    switch (event.keyCode) {
+      
+        case 32:
+                velocity = velocity.add(acc.scalar(0.003)); 
+
+            break;
+        
+    }
+}
+
+document.addEventListener('keydown', moveCamera, false)
+     
+  }
+    
+	
+
+	function render() {
+		//cameraControls.update();
+		renderer.render(scene, camera);
+	}
+	animate();
+	</script>
+</html>
